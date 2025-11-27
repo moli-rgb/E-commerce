@@ -26,11 +26,41 @@ app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
+  res.json({
+    status: 'OK',
+    database: dbStatus,
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    mongoConfigured: !!process.env.MONGO_URI
+  });
+});
+
 // Database Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce', {
-})
-.then(() => console.log('MongoDB Connected'))
-.catch(err => console.log(err));
+const connectDB = async () => {
+  try {
+    const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce';
+    console.log('Connecting to MongoDB...');
+    
+    await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+    });
+    
+    console.log('✅ MongoDB Connected Successfully');
+    console.log('Database:', mongoose.connection.name);
+  } catch (err) {
+    console.error('❌ MongoDB Connection Error:', err.message);
+    console.error('Make sure MONGO_URI is set in environment variables');
+    // Don't exit in serverless environment
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  }
+};
+
+connectDB();
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

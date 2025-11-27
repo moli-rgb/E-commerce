@@ -5,10 +5,16 @@ const Product = require('../models/Product');
 // @access  Public
 const getProducts = async (req, res) => {
   try {
+    console.log('Fetching products from database...');
     const products = await Product.find({});
+    console.log(`Found ${products.length} products`);
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching products:', error);
+    res.status(500).json({ 
+      message: error.message,
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+    });
   }
 };
 

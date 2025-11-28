@@ -1,10 +1,33 @@
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Public
 const getProducts = async (req, res) => {
   try {
+    console.log('API: getProducts called');
+    
+    // Check Database Connection State
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting',
+    };
+    console.log(`Database State: ${dbState} (${dbStatus[dbState]})`);
+
+    if (dbState !== 1) {
+      console.error('Database not connected. Attempting to reconnect...');
+      // Optional: Trigger reconnection logic here if needed, or just fail fast
+      return res.status(503).json({
+        message: 'Database not connected',
+        readyState: dbState,
+        status: dbStatus[dbState]
+      });
+    }
+
     console.log('Fetching products from database...');
     const products = await Product.find({});
     console.log(`Found ${products.length} products`);
@@ -12,8 +35,10 @@ const getProducts = async (req, res) => {
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).json({ 
-      message: error.message,
-      error: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      message: 'Server Error fetching products',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      dbState: mongoose.connection.readyState
     });
   }
 };

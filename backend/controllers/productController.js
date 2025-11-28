@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
+const dbConnect = require('../utils/dbConnect');
 
 // @desc    Get all products
 // @route   GET /api/products
@@ -7,6 +8,8 @@ const mongoose = require('mongoose');
 const getProducts = async (req, res) => {
   try {
     console.log('API: getProducts called');
+    await dbConnect();
+
     
     // Check Database Connection State
     const dbState = mongoose.connection.readyState;

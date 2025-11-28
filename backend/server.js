@@ -38,21 +38,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+const dbConnect = require('./utils/dbConnect');
+
 // Database Connection
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce';
-    console.log('Connecting to MongoDB...');
-    
-    await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-    });
-    
-    console.log('✅ MongoDB Connected Successfully');
-    console.log('Database:', mongoose.connection.name);
+    await dbConnect();
   } catch (err) {
     console.error('❌ MongoDB Connection Error:', err.message);
-    console.error('Make sure MONGO_URI is set in environment variables');
     // Don't exit in serverless environment
     if (process.env.NODE_ENV !== 'production') {
       process.exit(1);
